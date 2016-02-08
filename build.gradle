@@ -1,0 +1,30 @@
+ext {
+    domaVersion = '1.38.0'
+    junitVersion = '4.12'
+    assertjVersion = '3.3.0'
+    googleTestingVersion = '0.8'
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    jcenter()
+    maven {
+        url 'http://maven.seasar.org/maven2/'
+    }
+}
+
+dependencies {
+    compile "org.seasar.doma:doma:${domaVersion}"
+    testCompile "junit:junit:${junitVersion}"
+    testCompile "org.assertj:assertj-core:${assertjVersion}"
+    testCompile "com.google.testing.compile:compile-testing:${googleTestingVersion}"
+    testCompile files("${System.properties['java.home']}/../lib/tools.jar")
+}
