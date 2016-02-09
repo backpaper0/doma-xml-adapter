@@ -2,24 +2,14 @@ package com.github.backpaper0.doma;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.ElementVisitor;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.SimpleAnnotationValueVisitor7;
-import javax.lang.model.util.SimpleElementVisitor7;
-import javax.lang.model.util.SimpleTypeVisitor7;
 import javax.tools.JavaFileObject;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
@@ -32,39 +22,32 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
             for (TypeElement domainClassElement : ElementFilter
                     .typesIn(roundEnv.getElementsAnnotatedWith(typeElement))) {
 
-                AnnotationMirror domainAnnotation = getDomainAnnotation(domainClassElement);
-
-                String packageName = getPackageName(domainClassElement);
-                String adapterClassSimpleName = domainClassElement.getSimpleName() + "Adapter";
-
-                String valueType = getStringElement(domainAnnotation, "valueType");
-                String boundType = domainClassElement.getQualifiedName().toString();
-
-                String factoryMethod = getStringElement(domainAnnotation, "factoryMethod");
-                String accessorMethod = getStringElement(domainAnnotation, "accessorMethod");
+                DomainXmlAdapterModel model = new DomainXmlAdapterModel(domainClassElement,
+                        processingEnv.getElementUtils());
 
                 try {
-                    JavaFileObject file = processingEnv.getFiler()
-                            .createSourceFile(packageName + "." + adapterClassSimpleName);
+                    JavaFileObject file = processingEnv.getFiler().createSourceFile(
+                            model.getPackageName() + "." + model.getAdapterClassSimpleName());
                     try (PrintWriter out = new PrintWriter(file.openWriter())) {
-                        out.printf("package %1$s;%n", packageName);
+                        out.printf("package %1$s;%n", model.getPackageName());
                         out.printf("%n");
                         out.printf("public class %1$s extends %2$s<%3$s, %4$s> {%n",
-                                adapterClassSimpleName, XmlAdapter.class.getName(), valueType,
-                                boundType);
+                                model.getAdapterClassSimpleName(), XmlAdapter.class.getName(),
+                                model.getValueType(), model.getBoundType());
                         out.printf("%n");
                         out.printf("    public %1$s unmarshal(%2$s v) throws Exception {%n",
-                                boundType, valueType);
-                        if (factoryMethod.equals("new")) {
-                            out.printf("        return new %1$s(v);%n", boundType);
+                                model.getBoundType(), model.getValueType());
+                        if (model.getFactoryMethod().equals("new")) {
+                            out.printf("        return new %1$s(v);%n", model.getBoundType());
                         } else {
-                            out.printf("        return %1$s.%2$s(v);%n", boundType, factoryMethod);
+                            out.printf("        return %1$s.%2$s(v);%n", model.getBoundType(),
+                                    model.getFactoryMethod());
                         }
                         out.printf("    }%n");
                         out.printf("%n");
                         out.printf("    public %1$s marshal(%2$s v) throws Exception {%n",
-                                valueType, boundType);
-                        out.printf("        return v.%1$s();%n", accessorMethod);
+                                model.getValueType(), model.getBoundType());
+                        out.printf("        return v.%1$s();%n", model.getAccessorMethod());
                         out.printf("    }%n");
                         out.printf("}%n");
                         out.flush();
@@ -80,60 +63,5 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
     @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latest();
-    }
-
-    private AnnotationMirror getDomainAnnotation(TypeElement domainClassElement) {
-        ElementVisitor<TypeElement, Void> v = new SimpleElementVisitor7<TypeElement, Void>() {
-
-            @Override
-            public TypeElement visitType(TypeElement e, Void p) {
-                return e;
-            }
-        };
-        for (AnnotationMirror am : domainClassElement.getAnnotationMirrors()) {
-            if (am.getAnnotationType().asElement().accept(v, null).getQualifiedName().toString()
-                    .equals("org.seasar.doma.Domain")) {
-                return am;
-            }
-        }
-        throw new RuntimeException();
-    }
-
-    private String getPackageName(TypeElement domainClassElement) {
-        return processingEnv.getElementUtils().getPackageOf(domainClassElement).getQualifiedName()
-                .toString();
-    }
-
-    private String getStringElement(AnnotationMirror domainAnnotation, String elementName) {
-        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : processingEnv
-                .getElementUtils().getElementValuesWithDefaults(domainAnnotation).entrySet()) {
-            if (entry.getKey().getSimpleName().toString().equals(elementName)) {
-                return entry.getValue().accept(new SimpleAnnotationValueVisitor7<String, Void>() {
-                    @Override
-                    public String visitString(String s, Void p) {
-                        return s;
-                    }
-
-                    @Override
-                    public String visitType(TypeMirror t, Void p) {
-                        return t.accept(new SimpleTypeVisitor7<String, Void>() {
-
-                            @Override
-                            public String visitDeclared(DeclaredType t, Void p) {
-                                return t.asElement()
-                                        .accept(new SimpleElementVisitor7<String, Void>() {
-
-                                    @Override
-                                    public String visitType(TypeElement e, Void p) {
-                                        return e.getQualifiedName().toString();
-                                    }
-                                }, null);
-                            }
-                        }, null);
-                    }
-                }, null);
-            }
-        }
-        throw new RuntimeException(elementName);
     }
 }
