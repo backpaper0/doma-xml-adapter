@@ -13,7 +13,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ElementVisitor;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -41,8 +40,8 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
                 String valueType = getStringElement(domainAnnotation, "valueType");
                 String boundType = domainClassElement.getQualifiedName().toString();
 
-                //                String factoryMethod = getStringElement(domainAnnotation, "factoryMethod");
-                //                String accessorMethod = getStringElement(domainAnnotation, "accessorMethod");
+                String factoryMethod = getStringElement(domainAnnotation, "factoryMethod");
+                String accessorMethod = getStringElement(domainAnnotation, "accessorMethod");
 
                 try {
                     JavaFileObject file = processingEnv.getFiler()
@@ -56,14 +55,16 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
                         out.printf("%n");
                         out.printf("    public %1$s unmarshal(%2$s v) throws Exception {%n",
                                 boundType, valueType);
-                        //TODO
-                        out.printf("        return new %1$s(v);%n", boundType);
+                        if (factoryMethod.equals("new")) {
+                            out.printf("        return new %1$s(v);%n", boundType);
+                        } else {
+                            out.printf("        return %1$s.%2$s(v);%n", boundType, factoryMethod);
+                        }
                         out.printf("    }%n");
                         out.printf("%n");
                         out.printf("    public %1$s marshal(%2$s v) throws Exception {%n",
                                 valueType, boundType);
-                        //TODO
-                        out.printf("        return v.getValue();%n");
+                        out.printf("        return v.%1$s();%n", accessorMethod);
                         out.printf("    }%n");
                         out.printf("}%n");
                         out.flush();
@@ -99,21 +100,19 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
     }
 
     private String getPackageName(TypeElement domainClassElement) {
-        return domainClassElement.getEnclosingElement()
-                .accept(new SimpleElementVisitor7<String, Void>() {
-
-                    @Override
-                    public String visitPackage(PackageElement e, Void p) {
-                        return e.getQualifiedName().toString();
-                    }
-                }, null);
+        return processingEnv.getElementUtils().getPackageOf(domainClassElement).getQualifiedName()
+                .toString();
     }
 
     private String getStringElement(AnnotationMirror domainAnnotation, String elementName) {
-        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : domainAnnotation
-                .getElementValues().entrySet()) {
+        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : processingEnv
+                .getElementUtils().getElementValuesWithDefaults(domainAnnotation).entrySet()) {
             if (entry.getKey().getSimpleName().toString().equals(elementName)) {
                 return entry.getValue().accept(new SimpleAnnotationValueVisitor7<String, Void>() {
+                    @Override
+                    public String visitString(String s, Void p) {
+                        return s;
+                    }
 
                     @Override
                     public String visitType(TypeMirror t, Void p) {
