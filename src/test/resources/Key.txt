@@ -1,0 +1,8 @@
+package com.example;
+
+@org.seasar.doma.Domain(valueType = String.class)
+public class Key {
+    private final String value;
+    public Key(String value) { this.value = value; }
+    public String getValue() { return value; }
+}

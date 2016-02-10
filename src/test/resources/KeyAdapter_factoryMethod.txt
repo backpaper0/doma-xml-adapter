@@ -1,0 +1,12 @@
+package com.example;
+
+public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<java.lang.String, com.example.Key> {
+
+    public com.example.Key unmarshal(java.lang.String v) throws Exception {
+        return com.example.Key.valueOf(v);
+    }
+
+    public java.lang.String marshal(com.example.Key v) throws Exception {
+        return v.getValue();
+    }
+}

@@ -1,0 +1,11 @@
+package com.example;
+
+@org.seasar.doma.Domain(valueType = String.class, factoryMethod = "valueOf")
+public class Key {
+    private final String value;
+    private Key(String value) { this.value = value; }
+    public String getValue() { return value; }
+    public static Key valueOf(String value) {
+        return new Key(value);
+    }
+}

@@ -1,5 +1,8 @@
 package com.github.backpaper0.doma;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import org.junit.Test;
 
 import com.google.common.truth.Truth;
@@ -11,78 +14,47 @@ public class DomainXmlAdapterProcessorTest {
     @Test
     public void test() throws Exception {
         Truth.ASSERT.about(JavaSourceSubjectFactory.javaSource())
-                .that(JavaFileObjects.forSourceLines("com.example.Key", "package com.example;", "",
-                        "@org.seasar.doma.Domain(valueType = String.class)", "public class Key {",
-                        "    private final String value;",
-                        "    public Key(String value) { this.value = value; }",
-                        "    public String getValue() { return value; }", "}"))
+                .that(JavaFileObjects.forSourceLines("com.example.Key",
+                        Files.readAllLines(Paths.get(getClass().getResource("/Key.txt").toURI()))))
                 .processedWith(new DomainXmlAdapterProcessor()).compilesWithoutError().and()
-                .generatesSources(JavaFileObjects.forSourceLines("com.example.KeyAdapter",
-                        "package com.example;", "",
-                        "public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<java.lang.String, com.example.Key> {",
-                        "",
-                        "    public com.example.Key unmarshal(java.lang.String v) throws Exception {",
-                        "        return new com.example.Key(v);", "    }", "",
-                        "    public java.lang.String marshal(com.example.Key v) throws Exception {",
-                        "        return v.getValue();", "    }", "}"));
+                .generatesSources(
+                        JavaFileObjects.forSourceLines("com.example.KeyAdapter", Files.readAllLines(
+                                Paths.get(getClass().getResource("/KeyAdapter.txt").toURI()))));
     }
 
     @Test
     public void factoryMethod() throws Exception {
         Truth.ASSERT.about(JavaSourceSubjectFactory.javaSource())
-                .that(JavaFileObjects.forSourceLines("com.example.Key", "package com.example;", "",
-                        "@org.seasar.doma.Domain(valueType = String.class, factoryMethod = \"valueOf\")",
-                        "public class Key {", "    private final String value;",
-                        "    private Key(String value) { this.value = value; }",
-                        "    public String getValue() { return value; }",
-                        "    public static Key valueOf(String text) { return new Key(text); }",
-                        "}"))
+                .that(JavaFileObjects.forSourceLines("com.example.Key",
+                        Files.readAllLines(Paths
+                                .get(getClass().getResource("/Key_factoryMethod.txt").toURI()))))
                 .processedWith(new DomainXmlAdapterProcessor()).compilesWithoutError().and()
                 .generatesSources(JavaFileObjects.forSourceLines("com.example.KeyAdapter",
-                        "package com.example;", "",
-                        "public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<java.lang.String, com.example.Key> {",
-                        "",
-                        "    public com.example.Key unmarshal(java.lang.String v) throws Exception {",
-                        "        return com.example.Key.valueOf(v);", "    }", "",
-                        "    public java.lang.String marshal(com.example.Key v) throws Exception {",
-                        "        return v.getValue();", "    }", "}"));
+                        Files.readAllLines(Paths.get(
+                                getClass().getResource("/KeyAdapter_factoryMethod.txt").toURI()))));
     }
 
     @Test
     public void accessorMethod() throws Exception {
         Truth.ASSERT.about(JavaSourceSubjectFactory.javaSource())
-                .that(JavaFileObjects.forSourceLines("com.example.Key", "package com.example;", "",
-                        "@org.seasar.doma.Domain(valueType = String.class, accessorMethod = \"value\")",
-                        "public class Key {", "    private final String value;",
-                        "    public Key(String value) { this.value = value; }",
-                        "    public String value() { return value; }", "}"))
+                .that(JavaFileObjects.forSourceLines("com.example.Key",
+                        Files.readAllLines(Paths
+                                .get(getClass().getResource("/Key_accessorMethod.txt").toURI()))))
                 .processedWith(new DomainXmlAdapterProcessor()).compilesWithoutError().and()
                 .generatesSources(JavaFileObjects.forSourceLines("com.example.KeyAdapter",
-                        "package com.example;", "",
-                        "public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<java.lang.String, com.example.Key> {",
-                        "",
-                        "    public com.example.Key unmarshal(java.lang.String v) throws Exception {",
-                        "        return new com.example.Key(v);", "    }", "",
-                        "    public java.lang.String marshal(com.example.Key v) throws Exception {",
-                        "        return v.value();", "    }", "}"));
+                        Files.readAllLines(Paths.get(getClass()
+                                .getResource("/KeyAdapter_accessorMethod.txt").toURI()))));
     }
 
     @Test
     public void generics() throws Exception {
         Truth.ASSERT.about(JavaSourceSubjectFactory.javaSource())
-                .that(JavaFileObjects.forSourceLines("com.example.Key", "package com.example;", "",
-                        "@org.seasar.doma.Domain(valueType = String.class)",
-                        "public class Key<T> {", "    private final String value;",
-                        "    public Key(String value) { this.value = value; }",
-                        "    public String getValue() { return value; }", "}"))
+                .that(JavaFileObjects.forSourceLines("com.example.Key",
+                        Files.readAllLines(
+                                Paths.get(getClass().getResource("/Key_generics.txt").toURI()))))
                 .processedWith(new DomainXmlAdapterProcessor()).compilesWithoutError().and()
                 .generatesSources(JavaFileObjects.forSourceLines("com.example.KeyAdapter",
-                        "package com.example;", "",
-                        "public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<java.lang.String, com.example.Key<?>> {",
-                        "",
-                        "    public com.example.Key<?> unmarshal(java.lang.String v) throws Exception {",
-                        "        return new com.example.Key(v);", "    }", "",
-                        "    public java.lang.String marshal(com.example.Key<?> v) throws Exception {",
-                        "        return v.getValue();", "    }", "}"));
+                        Files.readAllLines(Paths
+                                .get(getClass().getResource("/KeyAdapter_generics.txt").toURI()))));
     }
 }
