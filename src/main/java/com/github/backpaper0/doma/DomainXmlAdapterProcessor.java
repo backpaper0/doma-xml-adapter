@@ -58,6 +58,9 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
         out.printf("%n");
         out.printf("    public %1$s marshal(%2$s v) throws Exception {%n", model.getValueType(),
                 model.getBoundType());
+        out.printf("        if (v == null) {%n");
+        out.printf("            return null;%n");
+        out.printf("        }%n");
         out.printf("        return v.%1$s();%n", model.getAccessorMethod());
         out.printf("    }%n");
         out.printf("}%n");

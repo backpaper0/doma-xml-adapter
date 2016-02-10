@@ -7,6 +7,9 @@ public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<ja
     }
 
     public java.lang.String marshal(com.example.Key v) throws Exception {
+        if (v == null) {
+            return null;
+        }
         return v.value();
     }
 }
