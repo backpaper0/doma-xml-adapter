@@ -20,6 +20,7 @@ public class DomainXmlAdapterModel {
 
     private final String packageName;
     private final String adapterClassSimpleName;
+    private final int typeParametersSize;
     private final String boundType;
     private final String valueType;
     private final String factoryMethod;
@@ -32,8 +33,10 @@ public class DomainXmlAdapterModel {
                 .getElementValuesWithDefaults(atDomain).entrySet()) {
             map.put(entry.getKey().getSimpleName().toString(), entry.getValue());
         }
+
         this.packageName = elements.getPackageOf(domainClassElement).getQualifiedName().toString();
         this.adapterClassSimpleName = domainClassElement.getSimpleName().toString() + "Adapter";
+        this.typeParametersSize = domainClassElement.getTypeParameters().size();
         this.boundType = domainClassElement.getQualifiedName().toString();
         this.valueType = map.get("valueType").accept(v, null);
         this.factoryMethod = map.get("factoryMethod").accept(v, null);
@@ -87,8 +90,28 @@ public class DomainXmlAdapterModel {
         return adapterClassSimpleName;
     }
 
+    public String getConstructor() {
+        if (typeParametersSize == 0) {
+            return boundType;
+        }
+        return boundType + "<>";
+    }
+
     public String getBoundType() {
-        return boundType;
+        if (typeParametersSize == 0) {
+            return boundType;
+        }
+        StringBuilder buf = new StringBuilder();
+        buf.append(boundType);
+        buf.append("<");
+        for (int i = 0; i < typeParametersSize; i++) {
+            if (i > 0) {
+                buf.append(", ");
+            }
+            buf.append("?");
+        }
+        buf.append(">");
+        return buf.toString();
     }
 
     public String getValueType() {

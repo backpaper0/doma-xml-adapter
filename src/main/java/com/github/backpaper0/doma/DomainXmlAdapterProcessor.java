@@ -49,7 +49,7 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
         out.printf("    public %1$s unmarshal(%2$s v) throws Exception {%n", model.getBoundType(),
                 model.getValueType());
         if (model.getFactoryMethod().equals("new")) {
-            out.printf("        return new %1$s(v);%n", model.getBoundType());
+            out.printf("        return new %1$s(v);%n", model.getConstructor());
         } else {
             out.printf("        return %1$s.%2$s(v);%n", model.getBoundType(),
                     model.getFactoryMethod());
