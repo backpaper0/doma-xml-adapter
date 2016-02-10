@@ -31,7 +31,7 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
                         generate(model, writer);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
         }
