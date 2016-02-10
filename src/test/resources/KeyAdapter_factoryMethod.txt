@@ -2,10 +2,12 @@ package com.example;
 
 public class KeyAdapter extends javax.xml.bind.annotation.adapters.XmlAdapter<java.lang.String, com.example.Key> {
 
+    @Override
     public com.example.Key unmarshal(java.lang.String v) throws Exception {
         return com.example.Key.valueOf(v);
     }
 
+    @Override
     public java.lang.String marshal(com.example.Key v) throws Exception {
         if (v == null) {
             return null;

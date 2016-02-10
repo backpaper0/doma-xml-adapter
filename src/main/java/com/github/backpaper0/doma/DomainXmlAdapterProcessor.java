@@ -46,6 +46,7 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
                 model.getAdapterClassSimpleName(), XmlAdapter.class.getName(), model.getValueType(),
                 model.getBoundType());
         out.printf("%n");
+        out.printf("    @Override%n");
         out.printf("    public %1$s unmarshal(%2$s v) throws Exception {%n", model.getBoundType(),
                 model.getValueType());
         if (model.getFactoryMethod().equals("new")) {
@@ -56,6 +57,7 @@ public class DomainXmlAdapterProcessor extends AbstractProcessor {
         }
         out.printf("    }%n");
         out.printf("%n");
+        out.printf("    @Override%n");
         out.printf("    public %1$s marshal(%2$s v) throws Exception {%n", model.getValueType(),
                 model.getBoundType());
         out.printf("        if (v == null) {%n");
