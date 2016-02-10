@@ -38,14 +38,15 @@ public class DomainXmlAdapterModel {
         this.adapterClassSimpleName = domainClassElement.getSimpleName().toString() + "Adapter";
         this.typeParametersSize = domainClassElement.getTypeParameters().size();
         this.boundType = domainClassElement.getQualifiedName().toString();
-        this.valueType = map.get("valueType").accept(v, null);
-        this.factoryMethod = map.get("factoryMethod").accept(v, null);
-        this.accessorMethod = map.get("accessorMethod").accept(v, null);
+
+        ToString toString = new ToString();
+        this.valueType = map.get("valueType").accept(toString, null);
+        this.factoryMethod = map.get("factoryMethod").accept(toString, null);
+        this.accessorMethod = map.get("accessorMethod").accept(toString, null);
     }
 
     static AnnotationMirror getDomainAnnotation(TypeElement domainClassElement) {
         ElementVisitor<TypeElement, Void> v = new SimpleElementVisitor7<TypeElement, Void>() {
-
             @Override
             public TypeElement visitType(TypeElement e, Void p) {
                 return e;
@@ -59,28 +60,6 @@ public class DomainXmlAdapterModel {
         }
         throw new RuntimeException();
     }
-
-    static SimpleAnnotationValueVisitor7<String, Void> v = new SimpleAnnotationValueVisitor7<String, Void>() {
-        @Override
-        public String visitType(TypeMirror t, Void p) {
-            return t.accept(new SimpleTypeVisitor7<String, Void>() {
-                @Override
-                public String visitDeclared(DeclaredType t, Void p) {
-                    return t.asElement().accept(new SimpleElementVisitor7<String, Void>() {
-                        @Override
-                        public String visitType(TypeElement e, Void p) {
-                            return e.getQualifiedName().toString();
-                        }
-                    }, null);
-                }
-            }, null);
-        }
-
-        @Override
-        public String visitString(String s, Void p) {
-            return s;
-        }
-    };
 
     public String getPackageName() {
         return packageName;
@@ -124,5 +103,27 @@ public class DomainXmlAdapterModel {
 
     public String getAccessorMethod() {
         return accessorMethod;
+    }
+
+    private static class ToString extends SimpleAnnotationValueVisitor7<String, Void> {
+        @Override
+        public String visitType(TypeMirror t, Void p) {
+            return t.accept(new SimpleTypeVisitor7<String, Void>() {
+                @Override
+                public String visitDeclared(DeclaredType t, Void p) {
+                    return t.asElement().accept(new SimpleElementVisitor7<String, Void>() {
+                        @Override
+                        public String visitType(TypeElement e, Void p) {
+                            return e.getQualifiedName().toString();
+                        }
+                    }, null);
+                }
+            }, null);
+        }
+
+        @Override
+        public String visitString(String s, Void p) {
+            return s;
+        }
     }
 }
